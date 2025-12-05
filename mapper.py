@@ -9,7 +9,8 @@ Map_URL = "https://sendbird.chilipiper.com/concierge-js/cjs/concierge.js.map"
 
 # 1. Loading the SourceMap
 
-command = 'sourcemapper -url "https://sendbird.chilipiper.com/concierge-js/cjs/concierge.js.map" -output ./test -proxy "http://127.0.0.1:2020"'
+command = 'sourcemapper -url {Map_url} -output ./test -proxy "http://127.0.0.1:2020"'
+
 
 print(f"Executing command: {command}")
 result = subprocess.run(command, shell=True, capture_output=True, text=True)
