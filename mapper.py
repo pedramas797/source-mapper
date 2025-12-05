@@ -16,9 +16,19 @@ print(result.stdout)
 print("Command error (if any):")
 print(result.stderr)
 
-# 2. Git automation
+# 2. Git automation (only commit/push if there are changes)
 subprocess.run(["git", "add", "."], check=False)
-subprocess.run(["git", "commit", "-m", "Auto-update extracted sources"], check=False)
-subprocess.run(["git", "push"], check=False)
 
-print("Git push complete.")
+# Check if there are staged changes
+status_result = subprocess.run(
+    ["git", "status", "--porcelain"],
+    capture_output=True,
+    text=True
+)
+
+if status_result.stdout.strip():
+    subprocess.run(["git", "commit", "-m", "Auto-update extracted sources"], check=False)
+    subprocess.run(["git", "push"], check=False)
+    print("Changes detected. Commit and push complete.")
+else:
+    print("No changes detected. Skipping commit and push.")
