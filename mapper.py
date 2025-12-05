@@ -14,7 +14,6 @@ command = 'sourcemapper -url "https://sendbird.chilipiper.com/concierge-js/cjs/c
 print(f"Executing command: {command}")
 result = subprocess.run(command, shell=True, capture_output=True, text=True)
 
-
 print("Command output:")
 print(result.stdout)
 print("Command error (if any):")
