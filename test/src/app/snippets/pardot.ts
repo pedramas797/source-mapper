@@ -8,14 +8,8 @@ import {
   PardotEvent,
   PardotThankYouPageEvent,
 } from '../types'
+import { debug } from '../logger'
 import { parseClassNames, stripText } from './utils'
-
-const log = (msg: any, options?: Optional<Options, 'form'>) => {
-  if (typeof options?.debug !== 'undefined' ? options.debug : true) {
-    // eslint-disable-next-line no-console
-    console.log(msg)
-  }
-}
 
 export const deployPardotFormHandlerOnThankYouPage = (options: Optional<Options, 'form'>) => {
   const leadValues: Record<string, string> = {}
@@ -43,7 +37,7 @@ export const deployPardotFormHandlerOnThankYouPage = (options: Optional<Options,
     })
     submitAndRoute({ ...marketingApi.options }, marketingApi)
 
-    log(leadValues, options)
+    debug(leadValues, options)
   }
 }
 // Get Lead object from form fields
@@ -65,7 +59,7 @@ export const getLeadObject = (domain: string, router: string, form: HTMLFormElem
     }
 
     if (elem.hasAttribute('data-enriched')) {
-      log(`not sending enriched value for element ${elem.id}`)
+      debug(`not sending enriched value for element ${elem.id}`)
       return
     }
 
@@ -105,12 +99,13 @@ export const getLeadObject = (domain: string, router: string, form: HTMLFormElem
     data[fieldName] = fieldValue
   })
   // Log data and labels for debugging
-  log(data)
+  debug(data)
   return data
 }
 
 export const deployPardotOnLookAndFeel = (options: Optional<Options, 'form'>) => {
-  const formId = options.formId ?? '#pardot-form'
+  // there are some pardot forms which ids are not pardot-form, so we need to use the action attribute to find the form
+  const formId = options.formId ?? '#pardot-form, form[action*="https://go.pardot.com"]'
   const prelaunchApi = new PrelaunchApi()
   // Submit button click handler
   const submitHandler = (form: HTMLFormElement) => () => {
@@ -123,7 +118,7 @@ export const deployPardotOnLookAndFeel = (options: Optional<Options, 'form'>) =>
       data: lead,
     }
     window.parent.postMessage(event, '*')
-    log(lead, options)
+    debug(lead, options)
   }
   // Retry adding the form event listener
   const findFormAndAddListener = (count = 1) => {
@@ -141,7 +136,7 @@ export const deployPardotOnLookAndFeel = (options: Optional<Options, 'form'>) =>
         findFormAndAddListener(count + 1)
       }, 1000)
     } else {
-      log('no form found on this page, id used - ' + formId, options)
+      debug('no form found on this page, id used - ' + formId, options)
     }
   }
   findFormAndAddListener()

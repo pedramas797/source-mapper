@@ -1,6 +1,6 @@
 import { PopUp } from './PopUp'
 import { Options } from './types'
-import { log } from './logger'
+import { debug } from './logger'
 import { dispatchEnrichDataEvent } from './utils'
 
 export class PrelaunchApi {
@@ -49,7 +49,7 @@ export class PrelaunchApi {
         `input[name="${this.emailFieldName}"]`
       )
       if (this.emailField) {
-        log(
+        debug(
           `Email field found: ${this.emailField.name}, adding blur listener to dispatch enrich data event`
         )
         const onEmailBlur = () => {
@@ -57,10 +57,10 @@ export class PrelaunchApi {
         }
         this.emailField.onblur = onEmailBlur
       } else {
-        log(`Email field with name ${this.emailFieldName} not found`)
+        debug(`Email field with name ${this.emailFieldName} not found`)
       }
     } else {
-      log('No email field name or form found')
+      debug('No email field name or form found')
     }
   }
 
@@ -71,25 +71,25 @@ export class PrelaunchApi {
       const fieldsToEnrichSelector = this.fieldNamesToEnrich.reduce((acc, fieldId) => {
         return `${acc ? `${acc}, ` : ''}label[for*="${fieldId}"], input[id="${fieldId}"], input[name="${fieldId}"], select[id="${fieldId}"], select[name="${fieldId}"]`
       }, '')
-      log('Selector to find fields to enrich: ', fieldsToEnrichSelector)
+      debug('Selector to find fields to enrich: ', fieldsToEnrichSelector)
       this.fieldElementsToEnrich = this.form.querySelectorAll<HTMLElement>(fieldsToEnrichSelector)
       this.fieldElementsToEnrich?.forEach(field => {
         if (this.enrichmentParentSelector) {
-          log('Enrichment parent selector: ', this.enrichmentParentSelector)
+          debug('Enrichment parent selector: ', this.enrichmentParentSelector)
           const div = field.closest<HTMLDivElement>(this.enrichmentParentSelector)
           if (div) {
-            log('Hiding enrichment parent element: ', div)
+            debug('Hiding enrichment parent element: ', div)
             div.style.display = 'none'
           }
         }
-        log('Hiding field: ', field)
+        debug('Hiding field: ', field)
         field.style.display = 'none'
         if ('value' in field) {
           field.value = ''
         }
       })
     } else {
-      log('Form not found or no fields to enrich are set')
+      debug('Form not found or no fields to enrich are set')
     }
   }
 
@@ -102,7 +102,7 @@ export class PrelaunchApi {
     enrichedFields: Record<string, string>
     routingId?: string
   }) => {
-    log('Enriching data: ', enrichedFields)
+    debug('Enriching data: ', enrichedFields)
     this.routingId = routingId
     this.fieldElementsToEnrich?.forEach(field => {
       const fieldValue = (() => {
