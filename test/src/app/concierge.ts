@@ -206,6 +206,9 @@ export const ChiliPiper = {
   closePopup: () => {
     if (window.ChiliPiper?._marketingApi) {
       window.ChiliPiper._marketingApi.popup.close()
+      window.ChiliPiper._marketingApi.popup.removeEventListeners()
+      //@ts-ignore This will destroy the marketingApi instance
+      window.ChiliPiper._marketingApi = undefined
     }
   },
 }

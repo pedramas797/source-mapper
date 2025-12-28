@@ -140,7 +140,7 @@ export class PopUp {
 
   getOptions() {
     return {
-      by: this.options.by,
+      by: this.options.by ? this.options.by : undefined,
       locale: this.options.locale,
       accountId: this.options.accountId,
       closeOnOutside: this.options.closeOnOutside,
@@ -148,7 +148,6 @@ export class PopUp {
       caseId: this.options.caseId,
       assigneeCrmId: this.options.assigneeCrmId,
       domElement: this.options.domElement,
-      type: this.options.type,
       trigger: this.options.trigger || 'ThirdPartyForm',
       ownerId: this.options.ownerId,
       objectId: this.options.objectId,

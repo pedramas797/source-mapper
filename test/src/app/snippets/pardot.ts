@@ -9,7 +9,7 @@ import {
   PardotThankYouPageEvent,
 } from '../types'
 import { debug } from '../logger'
-import { parseClassNames, stripText } from './utils'
+import { parseClassNames, stripText, inIframe } from './utils'
 
 export const deployPardotFormHandlerOnThankYouPage = (options: Optional<Options, 'form'>) => {
   const leadValues: Record<string, string> = {}
@@ -41,7 +41,6 @@ export const deployPardotFormHandlerOnThankYouPage = (options: Optional<Options,
   }
 }
 // Get Lead object from form fields
-
 export const getLeadObject = (domain: string, router: string, form: HTMLFormElement) => {
   const data = {
     CPTenantDomain: domain,
@@ -113,12 +112,18 @@ export const deployPardotOnLookAndFeel = (options: Optional<Options, 'form'>) =>
     if (prelaunchApi.routingId) {
       lead.routingId = prelaunchApi.routingId
     }
-    const event: PardotDataReadyEvent = {
-      message: 'PARDOT_DATA_READY',
-      data: lead,
-    }
-    window.parent.postMessage(event, '*')
     debug(lead, options)
+    if (inIframe()) {
+      debug('pardot iframe detected, sending data to parent')
+      const event: PardotDataReadyEvent = {
+        message: 'PARDOT_DATA_READY',
+        data: lead,
+      }
+      window.parent.postMessage(event, '*')
+    } else {
+      debug('pardot iframe not detected, sending data to form as it seems a native pardot form')
+      form.action = `${form.action}?${new URLSearchParams(lead).toString()}`
+    }
   }
   // Retry adding the form event listener
   const findFormAndAddListener = (count = 1) => {
@@ -150,6 +155,16 @@ export const deployPardotIframeOnThankYouPage = () => {
   window.parent.postMessage(event, '*')
 }
 
+const getLeadObjectFromQueryParams = (queryParams: string) => {
+  const urlParams = new URLSearchParams(queryParams)
+  const entries = urlParams.entries()
+  const leadObj: Record<string, string> = {}
+  for (const [key, value] of entries) {
+    leadObj[key] = value
+  }
+  return leadObj
+}
+
 export const deployPardotIframeOnParentPage = (options: Optional<Options, 'form'>) => {
   const marketingApi = new MarketingApi(options)
   const pardotIframe = document.querySelector('iframe[src*="pardot"]') as HTMLIFrameElement
@@ -162,6 +177,19 @@ export const deployPardotIframeOnParentPage = (options: Optional<Options, 'form'
       }
     }
     window.addEventListener('message', forwardEvents)
+  } else {
+    debug('no pardot iframe detected, sending data to form as it seems a native pardot form')
+    const lead = getLeadObjectFromQueryParams(window.location.search)
+    if (Object.keys(lead).length > 0) {
+      debug('lead object found in query params, sending data to form', lead)
+      submitAndRoute(
+        {
+          ...options,
+          lead,
+        },
+        marketingApi
+      )
+    }
   }
   let leadObj: Record<string, string> = {}
   // Below is the event listener that will listen for the Pardot Events
@@ -176,11 +204,7 @@ export const deployPardotIframeOnParentPage = (options: Optional<Options, 'form'
       // If DATA_READY doesn't send the data, we get it from search
       if (Object.keys(leadObj).length === 0) {
         const uri = decodeURIComponent(event.data.data.replace(/\+/g, ' '))
-        const urlParams = new URLSearchParams(uri)
-        const entries = urlParams.entries()
-        for (const [key, value] of entries) {
-          leadObj[key] = value
-        }
+        leadObj = getLeadObjectFromQueryParams(uri)
       }
 
       submitAndRoute(

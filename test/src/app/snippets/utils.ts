@@ -17,3 +17,11 @@ export const stripText = (text = '') => {
 export const parseClassNames = (className: string = '') => {
   return className.split(' ').find(value => value.toLocaleLowerCase().indexOf('cp_') === 0)
 }
+
+export const inIframe = () => {
+  try {
+    return window.self !== window.top
+  } catch (e) {
+    return true
+  }
+}
